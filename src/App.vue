@@ -1,28 +1,41 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <el-container>
+      <el-aside width="300px">
+      </el-aside>
+      <el-container>
+        <el-main>
+          <PageView
+              :page_count="4"
+          >
+
+          </PageView>
+        </el-main>
+        <el-footer>
+
+        </el-footer>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import PageView from "@/components/PageView";
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    PageView
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.el-aside {
+  background-color: #D3DCE6;
+  color: #333;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  line-height: 200px;
 }
+
 </style>
