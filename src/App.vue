@@ -1,41 +1,33 @@
 <template>
   <div id="app">
-    <el-container>
-      <el-aside width="300px">
-      </el-aside>
-      <el-container>
-        <el-main>
-          <PageView
-              :page_count="4"
-          >
+    <Home
+        :page_size="10"
+        :frame_amount="4"
+        :instruction_amount="320"
+    >
 
-          </PageView>
-        </el-main>
-        <el-footer>
-
-        </el-footer>
-      </el-container>
-    </el-container>
+    </Home>
   </div>
 </template>
 
 <script>
-import PageView from "@/components/PageView";
+import Home from "@/components/Home";
 
 export default {
   name: 'App',
   components: {
-    PageView
-  }
+    Home
+  },
+
 }
 </script>
 
 <style>
-.el-aside {
-  background-color: #D3DCE6;
-  color: #333;
-  text-align: center;
-  line-height: 200px;
-}
 
+#app {
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  max-height: 100%;
+}
 </style>

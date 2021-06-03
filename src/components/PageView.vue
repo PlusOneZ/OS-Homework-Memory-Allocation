@@ -1,56 +1,184 @@
 <template>
- <div>
-  <div
-    v-for="i in rows"
-    :key="i"
-    class="flex mx-auto justify-center items-center content-center text-center gap-4 pb-4"
-    >
+  <div>
     <div
-      v-for="j in (Number(i) !== rows ? cols : (page_count - (rows-1)*cols))"
-      :key="j"
-      :ref="el => {if (el) page_arr[i-1]=el}"
-      :style="{'background': '#' + block_color[(i-1)*cols+(j-1)]}"
-      class="border-solid border rounded-2xl h-40 w-40 content-center"
+        v-for="i in rows"
+        :key="i"
+        class="flex mx-auto justify-center items-center content-center text-center gap-4 pb-4"
     >
-      <p class="text-xl">页号： {{(i-1)*cols+(j-1)}}</p>
+      <div
+          v-for="j in (Number(i) !== rows ? cols : (frame_count - (rows-1)*cols))"
+          :key="j"
+          :ref="el => {if (el) frame_arr[(i-1)*cols+(j-1)]=el}"
+          :style="{'background': '#' + frame_color[(i-1)*cols+(j-1)]}"
+          class="border-solid border rounded-2xl h-40 w-40 content-center"
+          @click="page(i)"
+      >
+        <p class="text-xl">页框号： {{ (i - 1) * cols + (j - 1) }}</p>
+        <p> 当前页面：
+          {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_page[(i - 1) * cols + (j - 1)] : "空闲"}}
+        </p>
+
+        <p> 指令号：
+          {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_inst[(i - 1) * cols + (j - 1)] : "无"}}
+        </p>
+
+        <p> ub:
+          {{ used_bits[(i - 1) * cols + (j - 1)] }}
+        </p>
+
+        <p> mb:
+          {{ modified_bits[(i - 1) * cols + (j - 1)] }}
+        </p>
+      </div>
     </div>
   </div>
- </div>
 </template>
 
 <script>
+
+const LRU = 1
+const FIFO = 2
+
 export default {
   name: "PageView",
   props: {
-    page_count: Number
+    frame_count: Number
   },
+
   data() {
     return {
-      page_arr: [],
-      block_color: [],
+      frame_arr: [],
+      frame_color: [],
+      pages_loaded: [],
+      frame_page: [],
+      frame_inst: [],
+
+      inst_queue: [],
+      clock_pointer: 0,
+      used_bits: [],
+      modified_bits: []
     }
   },
-  methods: {
 
+  methods: {
+    page(i) {
+      console.log(this.frame_arr[i])
+    },
+
+    findLruReplacement() {
+      for (let i = 0; i < this.frame_count; i++) {
+        if (!this.pages_loaded[i]) {
+          return i
+        }
+      }
+      do {
+        // first & third scan
+        for (let i = 0; i < this.frame_count; i++) {
+          if (!this.used_bits[this.clock_pointer] && !this.modified_bits[this.clock_pointer]) {
+            let r = this.clock_pointer
+            this.clockNext()
+            return r
+          }
+          this.clockNext()
+        }
+        // second & last scan
+        for (let i = 0; i < this.frame_count; i++) {
+          if (!this.used_bits[this.clock_pointer]) {
+            let r = this.clock_pointer
+            this.clockNext()
+            return r
+          } else {
+            this.used_bits[this.clock_pointer] = false
+          }
+        }
+        // eslint-disable-next-line no-constant-condition
+      } while (true)
+    },
+
+    findFifoReplacement() {
+      for (let i = 0; i < this.frame_count; i++) {
+        if (!this.pages_loaded[i]) {
+          return i
+        }
+      }
+      let r = this.inst_queue[0]
+      this.inst_queue.remove(r)
+      return r
+    },
+
+    clockNext() {
+      this.clock_pointer = (this.clock_pointer + 1) % this.frame_count
+    },
+
+    executeLRU(page, inst, pageColor) {
+      let frame = this.findLruReplacement()
+
+      this.pages_loaded[frame] = true
+      this.frame_page[frame] = page
+      this.frame_inst[frame] = inst
+      this.frame_color[frame] = pageColor
+
+      if (frame in this.inst_queue) {
+        this.inst_queue.remove(frame)
+      }
+      this.inst_queue.push(frame) // reorder
+      this.used_bits[frame] = true
+      this.modified_bits[frame] = false
+    },
+
+    executeFIFO(page, inst, pageColor) {
+      let frame = this.findFifoReplacement()
+
+      this.pages_loaded[frame] = true
+      this.frame_page[frame] = page
+      this.frame_inst[frame] = inst
+      this.frame_color[frame] = pageColor
+
+      this.inst_queue.push(frame) // reorder
+      this.used_bits[frame] = true
+      this.modified_bits[frame] = false
+    },
+
+    execute(page, inst, pageColor, algo) {
+      if (algo === LRU) {
+        this.executeLRU(page, inst, pageColor)
+      } else if (algo === FIFO) {
+        this.executeFIFO(page, inst, pageColor)
+      }
+    },
+
+    reset() {
+      console.log(this.frame_count)
+      for (let i = 0; i < this.frame_count; i++) {
+        console.log(i)
+        this.frame_color[i] = 'cfccc9'
+        this.pages_loaded[i] = false
+        this.frame_inst[i] = 0
+        this.frame_page[i] = 0
+
+        this.used_bits[i] = false
+        this.modified_bits[i] = false
+      }
+      this.clock_pointer = 0
+      this.inst_queue = []
+      console.log(this.frame_color)
+    }
   },
   computed: {
-      rows() {
-        return Math.ceil(this.page_count / this.cols)
-      },
-      cols(){
-        if (this.page_count > 16) {
-          return 4
-        } else {
-          return Math.ceil(Math.sqrt(this.page_count))
-        }
-      },
-  }, mounted() {
-    console.log(this.page_count)
-    for (let i = 0; i < this.page_count; i++) {
-      console.log(i)
-      this.block_color[i] = 'cfccc9'
-    }
-    console.log(this.block_color)
+    rows() {
+      return Math.ceil(this.frame_count / this.cols)
+    },
+    cols() {
+      if (this.frame_count > 16) {
+        return 4
+      } else {
+        return Math.ceil(Math.sqrt(this.frame_count))
+      }
+    },
+  },
+
+  mounted() {
+    this.reset()
   }
 }
 </script>
