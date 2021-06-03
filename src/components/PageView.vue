@@ -1,29 +1,34 @@
 <template>
   <el-container>
     <el-header>
-      <div class="flex content-center text-center justify-center">
+      <div class="h-4"></div>
+      <div class="flex content-center text-center justify-center text-xl">
         <p class="pr-8"> 当前执行条数：{{ inst_count }}</p>
         <p class="pr-8"> 缺页次数：{{ page_fault_count }}</p>
         <p> 缺页率：{{ page_fault_rate }}%</p>
       </div>
     </el-header>
     <el-main>
-      <div class="mx-auto max-h-full">
+      <div class="mx-auto min-h-full" id="mid">
         <div
             v-for="i in rows"
             :key="i"
-            class="flex mx-auto justify-center items-center content-center text-center gap-4 pb-4"
+            class="flex mx-auto justify-center items-center content-center text-center align-middle gap-4 pb-4 min-h-full"
         >
           <div
               v-for="j in (Number(i) !== rows ? cols : (frame_count - (rows-1)*cols))"
               :key="j"
               :ref="el => {if (el) frame_arr[(i-1)*cols+(j-1)]=el}"
-              :style="{'background': '#' + frame_color[(i-1)*cols+(j-1)]}"
+              :style="{
+                'background': '#' + frame_color[(i-1)*cols+(j-1)],
+                'color': text_color[(i-1)*cols+(j-1)]
+              }"
               class="border-solid border rounded-2xl h-40 w-40 content-center"
               @click="pageModify((i - 1) * cols + (j - 1))"
           >
-            <p class="text-xl">页框号： {{ (i - 1) * cols + (j - 1) }}</p>
-            <p> 当前页面：
+            <div class="h-4"></div>
+            <p class="text-md">Frame# {{ (i - 1) * cols + (j - 1) }}</p>
+            <p class="text-xl"> Page#
               {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_page[(i - 1) * cols + (j - 1)] : "空闲" }}
             </p>
 
@@ -31,15 +36,21 @@
               {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_inst[(i - 1) * cols + (j - 1)] : "无" }}
             </p>
 
-            <p> ub:
-              {{ used_bits[(i - 1) * cols + (j - 1)] }}
-            </p>
+            <div class="h-8"></div>
 
-            <p> mb:
-              {{ modified_bits[(i - 1) * cols + (j - 1)] }}
-            </p>
+            <div class="flex text-center justify-center content-center">
+              <i class="el-icon-error" v-if="!used_bits[(i - 1) * cols + (j - 1)]"></i>
+              <i class="el-icon-success" v-if="used_bits[(i - 1) * cols + (j - 1)]"></i>
+              <div class="w-20">
+                <i
+                    class="el-icon-position"
+                    v-if="(i - 1) * cols + (j - 1) === clock_pointer"
+                ></i>
+              </div>
+              <i class="el-icon-warning-outline" v-if="!modified_bits[(i - 1) * cols + (j - 1)]"></i>
+              <i class="el-icon-warning" v-if="modified_bits[(i - 1) * cols + (j - 1)]"></i>
+            </div>
 
-            <p v-if="(i - 1) * cols + (j - 1) === clock_pointer"> point </p>
           </div>
         </div>
       </div>
@@ -67,6 +78,7 @@ export default {
     return {
       frame_arr: [],
       frame_color: [],
+      text_color: [],
       pages_loaded: [],
       frame_page: [],
       frame_inst: [],
@@ -154,7 +166,8 @@ export default {
       this.pages_loaded[frame] = true
       this.frame_page[frame] = page
       this.frame_inst[frame] = inst
-      this.frame_color[frame] = pageColor
+      this.frame_color[frame] = pageColor.c
+      this.text_color[frame] = pageColor.t === 1 ? 'white' : 'black'
 
       if (this.inst_queue.indexOf(frame) >= 0) {
         this.inst_queue.remove(frame)
@@ -185,7 +198,8 @@ export default {
       this.pages_loaded[frame] = true
       this.frame_page[frame] = page
       this.frame_inst[frame] = inst
-      this.frame_color[frame] = pageColor
+      this.frame_color[frame] = pageColor.c
+      this.text_color[frame] = pageColor.t === 1 ? 'white' : 'black'
 
       this.inst_queue.push(frame) // reorder
       this.used_bits[frame] = true
@@ -207,7 +221,8 @@ export default {
       console.log(this.frame_count)
       for (let i = 0; i < this.frame_count; i++) {
         console.log(i)
-        this.frame_color[i] = 'cfccc9'
+        this.frame_color[i] = 'eeeeee'
+        this.text_color[i] = 'black'
         this.pages_loaded[i] = false
         this.frame_inst[i] = 0
         this.frame_page[i] = 0
@@ -220,7 +235,7 @@ export default {
       console.log(this.frame_color)
       this.page_fault_count = 0
       this.inst_count = 0
-    }
+    },
   },
   computed: {
     rows() {
@@ -250,7 +265,11 @@ export default {
 
 <style scoped>
 .el-header {
-  line-height: 60px;
+  line-height: 80px;
   @apply bg-gray-300;
 }
+.el-main {
+  height: 600px;
+}
+
 </style>

@@ -6,12 +6,12 @@
         :key="i"
         :id="'inst'+i"
     >
-      <el-menu-item :disabled="inst_list.executed[i-1]" @click="chooseInstruct(i)">
+      <el-menu-item :disabled="inst_list.executed[i-1]" @click="chooseInstruct(i-1)">
 
         <div class="flex" :style="{'text-decoration': (inst_list.executed[i-1] ? 'line-through' : '')}">
           <div class="w-8"> {{ i - 1 }}</div>
           <div class="w-24"> {{ typeName[inst_list['type'][i - 1]] }}</div>
-          <div class="w-36"> Page#{{ Math.floor((i-1) / frame_size) }}</div>
+          <div class="w-36"> Page#{{ Math.floor((i-1) / frame_size) }} </div>
         </div>
 
       </el-menu-item>
@@ -69,10 +69,8 @@ export default {
     },
 
     chooseInstruct(i) {
+      this.$emit("choose_inst", i)
       return i
-      // console.log(this.inst_list)
-      // console.log(this.inst_list['type'][i - 1])
-      // console.log(this.typeName[this.inst_list['type'][i - 1]])
     },
 
     executeInstruct(i) {
