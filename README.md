@@ -1,4 +1,4 @@
-# memory
+# Memory Allocation Simulator
 
 ## Project setup
 ```
