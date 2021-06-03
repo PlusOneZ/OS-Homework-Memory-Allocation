@@ -1,9 +1,12 @@
 <template>
   <div id="app">
     <Home
-        :page_size="10"
-        :frame_amount="4"
-        :instruction_amount="100"
+        :page_size="ps"
+        :frame_amount="fa"
+        :instruction_amount="ia"
+        @set_inst_amount="setInstAmount"
+        @set_frame_amount="setFrameAmount"
+        @set_page_size="setPageSize"
     >
 
     </Home>
@@ -18,7 +21,26 @@ export default {
   components: {
     Home
   },
+  data() {
+    return {
+      ps: 10,
+      fa: 4,
+      ia: 320
+    }
+  },
+  methods: {
+    setInstAmount(i) {
+      this.ia = i
+    },
 
+    setFrameAmount(i) {
+      this.fa = i
+    },
+
+    setPageSize(i) {
+      this.ps = i
+    }
+  }
 }
 </script>
 

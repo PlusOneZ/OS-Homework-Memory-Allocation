@@ -36,7 +36,9 @@
               {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_inst[(i - 1) * cols + (j - 1)] : "无" }}
             </p>
 
-            <div class="h-8"></div>
+            <div class="h-8">
+              {{ inst_queue.indexOf((i - 1) * cols + (j - 1)) >= 0 ? inst_queue.indexOf((i - 1) * cols + (j - 1)) : '' }}
+            </div>
 
             <div class="flex text-center justify-center content-center">
               <i class="el-icon-error" v-if="!used_bits[(i - 1) * cols + (j - 1)]"></i>
@@ -71,7 +73,7 @@ Array.prototype.remove = function (x) {
 export default {
   name: "PageView",
   props: {
-    frame_count: Number
+    frame_count: Number,
   },
 
   data() {
@@ -138,9 +140,7 @@ export default {
           return i
         }
       }
-      let r = this.inst_queue[0]
-      this.inst_queue.remove(r)
-      return r
+      return this.inst_queue[0]
     },
 
     clockNext() {
@@ -201,6 +201,9 @@ export default {
       this.frame_color[frame] = pageColor.c
       this.text_color[frame] = pageColor.t === 1 ? 'white' : 'black'
 
+      if (this.inst_queue.indexOf(frame) >= 0) {
+        this.inst_queue.remove(frame)
+      }
       this.inst_queue.push(frame) // reorder
       this.used_bits[frame] = true
       if (replace) {

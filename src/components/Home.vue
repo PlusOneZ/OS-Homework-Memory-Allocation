@@ -8,6 +8,7 @@
           :backward_portion="randomness_backward"
           :forward_portion="randomness_forward"
           @choose_inst="chooseInst"
+          :colors="colors"
       >
 
       </InstructionList>
@@ -24,10 +25,9 @@
       <el-footer>
         <div class="h-5"></div>
         <div class="flex">
-          <div class="pt-2"><a :href="'#'+ current_instruction"> 当前指令：{{ current_instruction }} </a></div>
-          <div class="w-36"></div>
-          <div class="pt-2"> 下条指令：{{ next_instruction }}</div>
-          <div class="w-36"></div>
+          <div class="pt-2 w-56"><a :href="'#'+ current_instruction"> 当前指令：{{ current_instruction }} </a></div>
+          <div class="pt-2 w-56"> 下条指令：{{ next_instruction }}</div>
+
           <el-button
               @click="stopTimer(); execute();"
               type="primary"
@@ -35,46 +35,102 @@
             单步执行
           </el-button>
           <div class="w-12"></div>
-          <el-button @click="continueExecute(1000)"> 连续执行（慢一点） </el-button>
+          <el-button @click="continueExecute(1000)"> 连续执行（慢一点）</el-button>
           <div class="w-12"></div>
-          <el-button @click="continueExecute(100)"> 连续执行（快一点） </el-button>
+          <el-button @click="continueExecute(100)"> 连续执行（快一点）</el-button>
           <div class="w-12"></div>
           <el-button @click="reset" type="danger"> 重置</el-button>
+          <div class="w-8"></div>
+          <div>
+            <el-radio v-model="algo" label="1"> 类LRU（Clock 实现）</el-radio>
+            <el-radio v-model="algo" label="2"> FIFO</el-radio>
+          </div>
         </div>
         <div class="h-5"></div>
-        <div class="flex" @click="randomnessFormVisible = true">
+        <div class="flex" @click="randomnessFormVisible = true" id="attribute">
           <p>顺序执行｜向前跳转｜向后跳转：
-            {{ randomness_sequential + '%｜' + randomness_forward + '%｜' + randomness_backward + '%' }} </p>
+            {{ randomness_sequential + '%｜' + randomness_forward + '%｜' + randomness_backward + '%' }}
+          </p>
+          <div class="w-10"></div>
+          <p> 指令总数：{{ instruction_amount }}</p>
+          <div class="w-10"></div>
+          <p> 页框数目：{{ frame_amount }}</p>
+          <div class="w-10"></div>
+          <p> 每页指令数：{{ page_size }}</p>
         </div>
 
         <el-dialog title="调整指令随机性" v-model="randomnessFormVisible">
           <div class="content-center align-middle text-center justify-center">
-            <el-input
-                type="text"
-                placeholder="向前跳转比例"
-                v-model="randomness_forward"
-                maxlength="3"
-                prefix-icon="el-icon-top"
-            >
-              {{ randomness_forward }}
-            </el-input>
+            <div class="inline-block">
+              <label class="text-lg">向前跳转比例: </label>
+              <el-input
+                  type="text"
+                  placeholder="向前跳转比例"
+                  v-model="randomness_forward"
+                  maxlength="3"
+                  prefix-icon="el-icon-top"
+              >
+                {{ randomness_forward }}
+              </el-input>
+            </div>
             <div class="h-10"></div>
-            <el-input
-                type="text"
-                placeholder="向后跳转比例"
-                v-model="randomness_backward"
-                maxlength="3"
-                prefix-icon="el-icon-bottom"
-            >
-              {{ randomness_backward }}
-            </el-input>
+            <div class="inline-block">
+              <label class="text-lg">向后跳转比例: </label>
+              <el-input
+                  type="text"
+                  placeholder="向后跳转比例"
+                  v-model="randomness_backward"
+                  maxlength="3"
+                  prefix-icon="el-icon-bottom"
+              >
+                {{ randomness_backward }}
+              </el-input>
+            </div>
             <div class="h-10"></div>
             <p> 顺序执行比例：{{ randomness_sequential }} </p>
             <div class="h-10"></div>
-            <span class="dialog-footer">
-              <el-button type="warning" @click="randomnessFormVisible = false; reset()">确定重置</el-button>
+            <div class="inline-block">
+              <label class="text-lg">指令总数: </label>
+              <el-input
+                  type="text"
+                  placeholder="指令总数"
+                  v-model="instruction_amount_ref"
+                  prefix-icon="el-icon-pie-chart"
+              >
+                {{ instruction_amount }}
+              </el-input>
+            </div>
+            <div class="h-10"></div>
+            <div class="inline-block">
+              <label class="text-lg">页框数目: </label>
+              <el-input
+                  type="text"
+                  placeholder="向后跳转比例"
+                  v-model="frame_amount_ref"
+                  maxlength="2"
+                  prefix-icon="el-icon-files"
+              >
+                {{ frame_amount }}
+              </el-input>
+            </div>
+            <div class="h-10"></div>
+            <div class="inline-block">
+              <label class="text-lg">每页指令数: </label>
+              <el-input
+                  type="text"
+                  placeholder="每页指令数"
+                  v-model="page_size_ref"
+                  maxlength="3"
+                  prefix-icon="el-icon-bottom"
+              >
+                {{ page_size }}
+              </el-input>
+            </div>
+            <div class="h-10"></div>
+            <div class="dialog-footer">
+              <el-button type="warning" @click="randomnessFormVisible = false; resetByRef()">确定重置</el-button>
               <el-button type="primary" @click="randomnessFormVisible = false;">取消</el-button>
-            </span>
+            </div>
           </div>
         </el-dialog>
 
@@ -89,7 +145,8 @@ import PageView from "@/components/PageView";
 import InstructionList from "@/components/InstructionList";
 import {defineComponent, ref} from 'vue'
 
-const LRU = 1
+const WHITE = 1
+const BLACK = 2
 
 export default defineComponent({
   name: 'Home',
@@ -107,7 +164,50 @@ export default defineComponent({
       current_instruction: Number,
       next_instruction: Number,
       randomnessFormVisible: false,
-      timer: undefined
+      timer: undefined,
+      algo: '1',
+      colors: [
+        {c: "eea2a4", t: BLACK},
+        {c: "5a191b", t: WHITE},
+        {c: "a61b29", t: WHITE},
+        {c: "894e54", t: WHITE},
+        {c: "c27c88", t: WHITE},
+        {c: "ec7696", t: WHITE},
+        {c: "33141e", t: WHITE},
+        {c: "cc5595", t: WHITE},
+        {c: "681752", t: WHITE},
+        {c: "7e1671", t: WHITE},
+        {c: "302f4b", t: WHITE},
+        {c: "61649f", t: WHITE},
+        {c: "1661ab", t: WHITE},
+        {c: "144a74", t: WHITE},
+        {c: "4e7ca1", t: WHITE},
+        {c: "11659a", t: WHITE},
+        {c: "2f90b9", t: WHITE},
+        {c: "134857", t: WHITE},
+        {c: "63bbd0", t: WHITE},
+        {c: "93d5dc", t: BLACK},
+        {c: "1ba784", t: WHITE},
+        {c: "57c3c2", t: WHITE},
+        {c: "5dbe8a", t: WHITE},
+        {c: "485b4d", t: WHITE},
+        {c: "43b244", t: WHITE},
+        {c: "fc6315", t: WHITE},
+        {c: "b7511d", t: WHITE},
+        {c: "fa5d19", t: WHITE},
+        {c: "732e12", t: WHITE},
+        {c: "862617", t: WHITE},
+        {c: "483332", t: WHITE},
+        {c: "5e5314", t: WHITE},
+        {c: "55bb8a", t: WHITE},
+        {c: "1f2623", t: WHITE},
+        {c: "cad3c3", t: BLACK},
+        {c: "f0f5e5", t: BLACK},
+        {c: "867018", t: BLACK},
+        {c: "fbecde", t: BLACK},
+        {c: "f2481b", t: WHITE},
+        {c: "f2b9b2", t: BLACK},
+      ]
     }
   },
 
@@ -123,17 +223,34 @@ export default defineComponent({
       this.$refs.instList.reset_list()
     },
 
+    resetByRef() {
+      let ia = Number(this.instruction_amount_ref)
+      let ps = Number(this.page_size_ref)
+      let fa = Number(this.frame_amount_ref)
+      if (ia) {
+        this.$emit("set_inst_amount", ia)
+      }
+      if (ps) {
+        this.$emit("set_page_size", ps)
+      }
+      if (fa) {
+        this.$emit("set_frame_amount", fa)
+      }
+      setTimeout(this.reset, 500)
+    },
+
     getPage(inst) {
       return Math.floor(inst / this.page_size)
     },
 
     getColor(page) {
-      let len = colors.length
-      return colors[page % len]
+      let len = this.colors.length
+      return this.colors[page % len]
     },
 
     execute() {
       if (this.next_instruction === undefined) {
+        alert("已经执行完毕，请重置或修改随机性")
         this.stopTimer()
         this.current_instruction = '已执行完毕'
         return
@@ -147,7 +264,7 @@ export default defineComponent({
           page,
           this.current_instruction,
           color,
-          LRU
+          Number(this.algo)
       )
     },
 
@@ -214,7 +331,7 @@ export default defineComponent({
     this.next_instruction = Math.floor(Math.random() * this.instruction_amount)
     this.randomness_forward = 25
     this.randomness_backward = 25
-    colors.sort(() => {
+    this.colors.sort(() => {
       return 0.5 - Math.random()
     })
   },
@@ -223,55 +340,13 @@ export default defineComponent({
     return {
       randomness_forward: ref(25),
       randomness_backward: ref(25),
+      instruction_amount_ref: ref(320),
+      frame_amount_ref: ref(4),
+      page_size_ref: ref(10)
     }
-  }
+    }
 })
 
-const WHITE = 1
-const BLACK = 2
-
-const colors = [
-  {c: "eea2a4", t: BLACK},
-  {c: "5a191b", t: WHITE},
-  {c: "a61b29", t: WHITE},
-  {c: "894e54", t: WHITE},
-  {c: "c27c88", t: WHITE},
-  {c: "ec7696", t: WHITE},
-  {c: "33141e", t: WHITE},
-  {c: "cc5595", t: WHITE},
-  {c: "681752", t: WHITE},
-  {c: "7e1671", t: WHITE},
-  {c: "302f4b", t: WHITE},
-  {c: "61649f", t: WHITE},
-  {c: "1661ab", t: WHITE},
-  {c: "144a74", t: WHITE},
-  {c: "4e7ca1", t: WHITE},
-  {c: "11659a", t: WHITE},
-  {c: "2f90b9", t: WHITE},
-  {c: "134857", t: WHITE},
-  {c: "63bbd0", t: WHITE},
-  {c: "93d5dc", t: BLACK},
-  {c: "1ba784", t: WHITE},
-  {c: "57c3c2", t: WHITE},
-  {c: "5dbe8a", t: WHITE},
-  {c: "485b4d", t: WHITE},
-  {c: "43b244", t: WHITE},
-  {c: "fc6315", t: WHITE},
-  {c: "b7511d", t: WHITE},
-  {c: "fa5d19", t: WHITE},
-  {c: "732e12", t: WHITE},
-  {c: "862617", t: WHITE},
-  {c: "483332", t: WHITE},
-  {c: "5e5314", t: WHITE},
-  {c: "55bb8a", t: WHITE},
-  {c: "1f2623", t: WHITE},
-  {c: "cad3c3", t: BLACK},
-  {c: "f0f5e5", t: BLACK},
-  {c: "867018", t: BLACK},
-  {c: "fbecde", t: BLACK},
-  {c: "f2481b", t: WHITE},
-  {c: "f2b9b2", t: BLACK},
-]
 </script>
 
 <style scoped>
@@ -288,6 +363,9 @@ const colors = [
 
 .el-input {
   @apply w-36 p-0;
+}
 
+#attribute:hover {
+  cursor: pointer;
 }
 </style>

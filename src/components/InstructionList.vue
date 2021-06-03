@@ -11,7 +11,13 @@
         <div class="flex" :style="{'text-decoration': (inst_list.executed[i-1] ? 'line-through' : '')}">
           <div class="w-8"> {{ i - 1 }}</div>
           <div class="w-24"> {{ typeName[inst_list['type'][i - 1]] }}</div>
-          <div class="w-36"> Page#{{ Math.floor((i-1) / frame_size) }} </div>
+          <div class="w-18 flex" :style="{'color': '#' + colors[Math.floor((i-1) / frame_size)].c}">
+            <p>
+              <i v-if="!inst_list.executed[i-1]" class="el-icon-circle-plus"> </i>
+              <i v-if="inst_list.executed[i-1]" class="el-icon-circle-check"> </i>
+              Page#{{ Math.floor((i-1) / frame_size) }}
+            </p>
+          </div>
         </div>
 
       </el-menu-item>
@@ -31,7 +37,8 @@ export default {
     amount: Number,
     frame_size: Number,
     forward_portion: Number,
-    backward_portion: Number
+    backward_portion: Number,
+    colors: Array
   },
   data() {
     return {
