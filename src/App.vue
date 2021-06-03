@@ -3,7 +3,7 @@
     <Home
         :page_size="10"
         :frame_amount="4"
-        :instruction_amount="320"
+        :instruction_amount="100"
     >
 
     </Home>

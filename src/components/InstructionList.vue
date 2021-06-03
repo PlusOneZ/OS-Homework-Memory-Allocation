@@ -89,33 +89,44 @@ export default {
       if (type === Forward) {
         let q = this.not_executed.filter(a => {return a < inst})
         if (q.length === 0) {
-          return this.not_executed[0]
+          for (const n of this.not_executed) {
+            if (n !== inst) return n
+          }
+          return undefined
         }
         q.sort(()=>{return 0.5 - Math.random()})
         return q[0]
       } else if (type === Backward) {
         let q = this.not_executed.filter(a => {return a > inst})
         if (q.length === 0) {
-          return this.not_executed[0]
+          for (const n of this.not_executed) {
+            if (n !== inst) return n
+          }
+          return undefined
         }
         q.sort(()=>{return 0.5 - Math.random()})
         return q[0]
       } else {
         inst += 1
         for (; inst < this.amount; inst++) {
-          if (inst in this.not_executed) {
+          if (this.not_executed.indexOf(inst) >= 0) {
             return inst
           }
         }
-        return this.not_executed[0]
+        for (const n of this.not_executed) {
+          if (n !== inst) return n
+        }
+        return undefined
       }
     },
 
     didExecute(inst) {
-      if (inst in this.not_executed) {
+      if (this.not_executed.indexOf(inst) >= 0) {
         this.not_executed.remove(inst)
+        this.inst_list.executed[inst] = true
       }
       console.log("Execute "+inst)
+      // console.log(this.not_executed)
     }
   },
 
