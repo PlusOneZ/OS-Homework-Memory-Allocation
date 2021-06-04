@@ -26,33 +26,101 @@
               class="border-solid border rounded-2xl h-40 w-40 content-center"
               @click="pageModify((i - 1) * cols + (j - 1))"
           >
-            <div class="h-4"></div>
-            <p class="text-md">Frame# {{ (i - 1) * cols + (j - 1) }}</p>
-            <p class="text-xl"> Page#
-              {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_page[(i - 1) * cols + (j - 1)] : "空闲" }}
-            </p>
+            <el-popover
+                placement="bottom"
+                :title="'Frame#'+((i - 1) * cols + (j - 1))"
+                :width="300"
+                trigger="hover"
+            >
+              <p> 状态：{{ (active_frame === (i - 1) * cols + (j - 1)) ? "执行" : "等待" }}</p>
+              <p v-if="(pages_loaded[(i - 1) * cols + (j - 1)])">
+                来自第# {{ frame_page[(i - 1) * cols + (j - 1)] }} 页
+              </p>
+              <p v-if="(pages_loaded[(i - 1) * cols + (j - 1)])">
+                使用位:
+                <span
+                    :class="{
+                      'text-red-400': used_bits[(i - 1) * cols + (j - 1)],
+                      'text-green-400': !used_bits[(i - 1) * cols + (j - 1)]
+                }">
+                  {{ used_bits[(i - 1) * cols + (j - 1)] ? "1" : "0"}}
+                </span>
+              </p>
+              <p v-if="(pages_loaded[(i - 1) * cols + (j - 1)])">
+                改变位：
+                <span
+                    :class="{
+                      'text-red-400': modified_bits[(i - 1) * cols + (j - 1)],
+                      'text-green-400': !modified_bits[(i - 1) * cols + (j - 1)]
+                }">
+                  {{ modified_bits[(i - 1) * cols + (j - 1)] ? "1" : "0"}}
+                </span>
+              </p>
+              <p v-if="(pages_loaded[(i - 1) * cols + (j - 1)])">
+                队列中位置：{{ inst_queue[(i - 1) * cols + (j - 1)] }}
+              </p>
+              <p v-if="clock_pointer === (i - 1) * cols + (j - 1)" class="text-red-400">
+                Clock 指针正指向这一页框！
+              </p>
+              <template #reference>
+                <div>
+                  <div class="h-4"></div>
+                  <p class="text-md"
+                     :style="{'color': (active_frame===(i - 1) * cols + (j - 1)) ? '#f8df70' : ''}"
+                  >
+                    Frame# {{ (i - 1) * cols + (j - 1) }}
+                  </p>
+                  <p class="text-xl"> Page#
+                    {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_page[(i - 1) * cols + (j - 1)] : "空闲" }}
+                  </p>
 
-            <p> 指令号：
-              {{ (pages_loaded[(i - 1) * cols + (j - 1)]) ? frame_inst[(i - 1) * cols + (j - 1)] : "无" }}
-            </p>
+                  <p> 指令号：
+                    {{
+                      (pages_loaded[(i - 1) * cols + (j - 1)])
+                          ? frame_inst[(i - 1) * cols + (j - 1)]
+                          : "无"
+                    }}
+                  </p>
 
-            <div class="h-8">
-              {{ inst_queue.indexOf((i - 1) * cols + (j - 1)) >= 0 ? inst_queue.indexOf((i - 1) * cols + (j - 1)) : '' }}
-            </div>
+                  <div class="h-8">
+                    {{
+                      inst_queue.indexOf((i - 1) * cols + (j - 1)) >= 0
+                          ? inst_queue.indexOf((i - 1) * cols + (j - 1))
+                          : ''
+                    }}
+                  </div>
 
-            <div class="flex text-center justify-center content-center">
-              <i class="el-icon-error" v-if="!used_bits[(i - 1) * cols + (j - 1)]"></i>
-              <i class="el-icon-success" v-if="used_bits[(i - 1) * cols + (j - 1)]"></i>
-              <div class="w-20">
-                <i
-                    class="el-icon-position"
-                    v-if="(i - 1) * cols + (j - 1) === clock_pointer"
-                ></i>
-              </div>
-              <i class="el-icon-warning-outline" v-if="!modified_bits[(i - 1) * cols + (j - 1)]"></i>
-              <i class="el-icon-warning" v-if="modified_bits[(i - 1) * cols + (j - 1)]"></i>
-            </div>
-
+                  <div class="flex text-center justify-center content-center">
+                    <i
+                        class="el-icon-error"
+                        v-if="!used_bits[(i - 1) * cols + (j - 1)]"
+                        style="color: #8e804b;"
+                    ></i>
+                    <i
+                        class="el-icon-success"
+                        v-if="used_bits[(i - 1) * cols + (j - 1)]"
+                        style="color: #f8df70"
+                    ></i>
+                    <div class="w-20">
+                      <i
+                          class="el-icon-position"
+                          v-if="(i - 1) * cols + (j - 1) === clock_pointer"
+                      ></i>
+                    </div>
+                    <i
+                        class="el-icon-warning-outline"
+                        v-if="!modified_bits[(i - 1) * cols + (j - 1)]"
+                        style="color: #8e804b;"
+                    ></i>
+                    <i
+                        class="el-icon-warning"
+                        v-if="modified_bits[(i - 1) * cols + (j - 1)]"
+                        style="color: #f8df70"
+                    ></i>
+                  </div>
+                </div>
+              </template>
+            </el-popover>
           </div>
         </div>
       </div>
@@ -84,6 +152,7 @@ export default {
       pages_loaded: [],
       frame_page: [],
       frame_inst: [],
+      active_frame: undefined,
 
       inst_queue: [],
       clock_pointer: 0,
@@ -163,6 +232,7 @@ export default {
         this.page_fault_count++
       }
 
+      this.active_frame = frame
       this.pages_loaded[frame] = true
       this.frame_page[frame] = page
       this.frame_inst[frame] = inst
@@ -195,6 +265,7 @@ export default {
         this.page_fault_count++
       }
 
+      this.active_frame = frame
       this.pages_loaded[frame] = true
       this.frame_page[frame] = page
       this.frame_inst[frame] = inst
@@ -238,6 +309,7 @@ export default {
       console.log(this.frame_color)
       this.page_fault_count = 0
       this.inst_count = 0
+      this.active_frame = undefined
     },
   },
   computed: {
@@ -271,6 +343,7 @@ export default {
   line-height: 80px;
   @apply bg-gray-300;
 }
+
 .el-main {
   height: 600px;
 }

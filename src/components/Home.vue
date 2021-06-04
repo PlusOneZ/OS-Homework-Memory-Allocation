@@ -35,11 +35,28 @@
             单步执行
           </el-button>
           <div class="w-12"></div>
-          <el-button @click="continueExecute(1000)"> 连续执行（慢一点）</el-button>
+          <el-button @click="continueExecute(1000)" :type="timer ? 'success' : 'default'" id="slow">
+            {{ timer ? '暂停' : '连续执行（慢一点）' }}
+          </el-button>
           <div class="w-12"></div>
-          <el-button @click="continueExecute(100)"> 连续执行（快一点）</el-button>
+          <el-button @click="continueExecute(100)" :type="timer ? 'success' : 'default'" id="fast">
+            {{ timer ? '暂停' : '连续执行（快一点）' }}
+          </el-button>
           <div class="w-12"></div>
-          <el-button @click="reset" type="danger"> 重置</el-button>
+          <el-button @click="resetVisible = true" type="danger"> 重置</el-button>
+          <el-dialog
+              title="确认重置"
+              v-model="resetVisible"
+              width="30%"
+          >
+            <span> 确认重置吗？这将会使指令重新生成。</span>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="resetVisible = false">取 消</el-button>
+                <el-button type="warning" @click="resetVisible = false; reset()">确 定</el-button>
+              </span>
+            </template>
+          </el-dialog>
           <div class="w-8"></div>
           <div>
             <el-radio v-model="algo" label="1"> 类LRU（Clock 实现）</el-radio>
@@ -57,6 +74,8 @@
           <p> 页框数目：{{ frame_amount }}</p>
           <div class="w-10"></div>
           <p> 每页指令数：{{ page_size }}</p>
+          <div class="w-10"></div>
+          <p> 该进程所占页数：{{ Math.ceil(instruction_amount / page_size) }}</p>
         </div>
 
         <el-dialog title="调整指令随机性" v-model="randomnessFormVisible">
@@ -95,6 +114,7 @@
                   type="text"
                   placeholder="指令总数"
                   v-model="instruction_amount_ref"
+                  maxlength="3"
                   prefix-icon="el-icon-pie-chart"
               >
                 {{ instruction_amount }}
@@ -166,6 +186,7 @@ export default defineComponent({
       randomnessFormVisible: false,
       timer: undefined,
       algo: '1',
+      resetVisible: false,
       colors: [
         {c: "eea2a4", t: BLACK},
         {c: "5a191b", t: WHITE},
@@ -236,6 +257,7 @@ export default defineComponent({
       if (fa) {
         this.$emit("set_frame_amount", fa)
       }
+      this.randomnessFormVisible = false
       setTimeout(this.reset, 500)
     },
 
@@ -344,7 +366,7 @@ export default defineComponent({
       frame_amount_ref: ref(4),
       page_size_ref: ref(10)
     }
-    }
+  }
 })
 
 </script>
@@ -367,5 +389,9 @@ export default defineComponent({
 
 #attribute:hover {
   cursor: pointer;
+}
+
+#fast, #slow {
+  @apply w-40;
 }
 </style>

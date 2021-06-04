@@ -11,7 +11,7 @@
         <div class="flex" :style="{'text-decoration': (inst_list.executed[i-1] ? 'line-through' : '')}">
           <div class="w-8"> {{ i - 1 }}</div>
           <div class="w-24"> {{ typeName[inst_list['type'][i - 1]] }}</div>
-          <div class="w-18 flex" :style="{'color': '#' + colors[Math.floor((i-1) / frame_size)].c}">
+          <div class="w-18 flex" :style="{'color': '#' + getColor(i-1)}">
             <p>
               <i v-if="!inst_list.executed[i-1]" class="el-icon-circle-plus"> </i>
               <i v-if="inst_list.executed[i-1]" class="el-icon-circle-check"> </i>
@@ -123,6 +123,12 @@ export default {
         }
         return undefined
       }
+    },
+
+    getColor(inst) {
+      let page = Math.floor(inst / this.frame_size)
+      let len = this.colors.length
+      return this.colors[page % len]
     },
 
     didExecute(inst) {
