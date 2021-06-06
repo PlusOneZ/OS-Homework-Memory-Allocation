@@ -1,5 +1,5 @@
 <template>
-  <el-container style="max-height: 100%">
+  <el-container style="max-height: 100%" id="page">
     <el-aside width="300px">
       <InstructionList
           ref="instList"
@@ -18,6 +18,7 @@
       <PageView
           :frame_count="frame_amount"
           ref="frames"
+          @replace="replaceHappen"
       >
 
       </PageView>
@@ -77,6 +78,8 @@
           <div class="w-10"></div>
           <p> 该进程所占页数：{{ Math.ceil(instruction_amount / page_size) }}</p>
         </div>
+
+        <p id="id" class="text-sm text-gray-400"> Tongji SSE 2021 OS-Spring ©Zhengyi Zhuo</p>
 
         <el-dialog title="调整指令随机性" v-model="randomnessFormVisible">
           <div class="content-center align-middle text-center justify-center">
@@ -308,6 +311,10 @@ export default defineComponent({
 
     chooseInst(inst) {
       this.next_instruction = inst
+    },
+
+    replaceHappen(inst) {
+      this.$refs.instList.didPageFault(inst)
     }
   },
 
@@ -393,5 +400,16 @@ export default defineComponent({
 
 #fast, #slow {
   @apply w-40;
+}
+
+#id {
+  @apply text-gray-600 text-sm;
+  position: fixed;
+  bottom: 1%;
+  left: 50%;
+}
+
+#page {
+  background-image: url('../assets/bg.png');
 }
 </style>

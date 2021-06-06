@@ -1,5 +1,5 @@
 <template>
-  <el-menu>
+  <el-menu id="menu">
     <div
         class="instruction"
         v-for="i in amount"
@@ -7,19 +7,18 @@
         :id="'inst'+i"
     >
       <el-menu-item :disabled="inst_list.executed[i-1]" @click="chooseInstruct(i-1)">
-
         <div class="flex" :style="{'text-decoration': (inst_list.executed[i-1] ? 'line-through' : '')}">
           <div class="w-8"> {{ i - 1 }}</div>
           <div class="w-24"> {{ typeName[inst_list['type'][i - 1]] }}</div>
-          <div class="w-18 flex" :style="{'color': '#' + getColor(i-1)}">
+          <div class="w-24 flex" :style="{'color': inst_list.executed[i-1] ? 'black' : ('#' + getColor(i-1).c)}">
             <p>
               <i v-if="!inst_list.executed[i-1]" class="el-icon-circle-plus"> </i>
               <i v-if="inst_list.executed[i-1]" class="el-icon-circle-check"> </i>
-              Page#{{ Math.floor((i-1) / frame_size) }}
+              Page#{{ Math.floor((i - 1) / frame_size) }}
             </p>
           </div>
         </div>
-
+        <span v-if="inst_list.page_fault[i-1]" class="text-red-400" id="pf"> PF </span>
       </el-menu-item>
     </div>
   </el-menu>
@@ -44,7 +43,8 @@ export default {
     return {
       inst_list: {
         type: [],
-        executed: []
+        executed: [],
+        page_fault: []
       },
       not_executed: [],
       typeName: ["顺序", "分支向前", "分支向后"]
@@ -71,6 +71,7 @@ export default {
       for (let i = 0; i < this.amount; i++) {
         this.inst_list['type'][i] = ran.pop()
         this.inst_list['executed'][i] = false
+        this.inst_list.page_fault[i] = false
         this.not_executed.push(i)
       }
     },
@@ -92,24 +93,32 @@ export default {
       }
       let type = this.inst_list.type[inst]
       if (type === Forward) {
-        let q = this.not_executed.filter(a => {return a < inst})
+        let q = this.not_executed.filter(a => {
+          return a < inst
+        })
         if (q.length === 0) {
           for (const n of this.not_executed) {
             if (n !== inst) return n
           }
           return undefined
         }
-        q.sort(()=>{return 0.5 - Math.random()})
+        q.sort(() => {
+          return 0.5 - Math.random()
+        })
         return q[0]
       } else if (type === Backward) {
-        let q = this.not_executed.filter(a => {return a > inst})
+        let q = this.not_executed.filter(a => {
+          return a > inst
+        })
         if (q.length === 0) {
           for (const n of this.not_executed) {
             if (n !== inst) return n
           }
           return undefined
         }
-        q.sort(()=>{return 0.5 - Math.random()})
+        q.sort(() => {
+          return 0.5 - Math.random()
+        })
         return q[0]
       } else {
         inst += 1
@@ -136,8 +145,12 @@ export default {
         this.not_executed.remove(inst)
         this.inst_list.executed[inst] = true
       }
-      console.log("Execute "+inst)
+      console.log("Execute " + inst)
       // console.log(this.not_executed)
+    },
+
+    didPageFault(inst) {
+      this.inst_list.page_fault[inst] = true
     }
   },
 
@@ -148,8 +161,12 @@ export default {
 </script>
 
 <style scoped>
-.instruction {
+.el-menu-item {
+  @apply flex;
+}
 
+.el-menu-item.is-disabled {
+  opacity: 0.6;
 }
 
 a {

@@ -10,6 +10,10 @@
     </el-header>
     <el-main>
       <div class="mx-auto min-h-full" id="mid">
+        <div v-if="rows === 1" class="h-72"></div>
+        <div v-if="rows === 2" class="h-48"></div>
+        <div v-if="rows === 3" class="h-24"></div>
+        <div v-if="rows === 4" class="h-6"></div>
         <div
             v-for="i in rows"
             :key="i"
@@ -20,10 +24,11 @@
               :key="j"
               :ref="el => {if (el) frame_arr[(i-1)*cols+(j-1)]=el}"
               :style="{
-                'background': '#' + frame_color[(i-1)*cols+(j-1)],
-                'color': text_color[(i-1)*cols+(j-1)]
+                'background': '#' + frame_color[(i-1)*cols+(j-1)] + 'aa',
+                'color': text_color[(i-1)*cols+(j-1)],
+                'backdrop-filter': 'blur(20px)'
               }"
-              class="border-solid border rounded-2xl h-40 w-40 content-center"
+              class="rounded-2xl h-40 w-40 content-center shadow-md"
               @click="pageModify((i - 1) * cols + (j - 1))"
           >
             <el-popover
@@ -94,23 +99,26 @@
                     <i
                         class="el-icon-error"
                         v-if="!used_bits[(i - 1) * cols + (j - 1)]"
-                        style="color: #8e804b;"
+                        style="color: #ae804b;"
                     ></i>
                     <i
                         class="el-icon-success"
                         v-if="used_bits[(i - 1) * cols + (j - 1)]"
                         style="color: #f8df70"
                     ></i>
-                    <div class="w-20">
+                    <div class="w-20 content-center text-center justify-center flex">
+                      <div class="w-1/12"></div>
                       <i
-                          class="el-icon-position"
+                          class="w-4"
                           v-if="(i - 1) * cols + (j - 1) === clock_pointer"
-                      ></i>
+                      >
+                        <svg class="icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M553.5 908.2c-1.2 0-2.2-0.1-3.5-0.2-10.9-1.5-19.5-10.1-21.1-21.1l-48.1-343.7L137.6 495c-11-1.5-19.5-10.1-21.1-21.1s4.3-21.6 14.5-26.1l741.8-329.9c9.4-4.1 20.3-2.1 27.6 5.1 7.3 7.3 9.3 18.2 5.1 27.6l-329.4 743c-4.1 9-13 14.6-22.6 14.6z" fill="red"></path></svg>
+                      </i>
                     </div>
                     <i
                         class="el-icon-warning-outline"
                         v-if="!modified_bits[(i - 1) * cols + (j - 1)]"
-                        style="color: #8e804b;"
+                        style="color: #ae804b;"
                     ></i>
                     <i
                         class="el-icon-warning"
@@ -229,6 +237,7 @@ export default {
       if (frame < 0) {
         frame = this.findLruReplacement()
         replace = true
+        this.$emit("replace", inst)
         this.page_fault_count++
       }
 
@@ -262,6 +271,7 @@ export default {
       if (frame < 0) {
         frame = this.findFifoReplacement()
         replace = true
+        this.$emit("replace", inst)
         this.page_fault_count++
       }
 
@@ -341,7 +351,8 @@ export default {
 <style scoped>
 .el-header {
   line-height: 80px;
-  @apply bg-gray-300;
+  backdrop-filter: blur(20px);
+  @apply bg-gray-300 bg-opacity-80 shadow-2xl;
 }
 
 .el-main {
