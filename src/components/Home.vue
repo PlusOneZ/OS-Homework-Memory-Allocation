@@ -387,7 +387,10 @@ export default defineComponent({
 
 .el-footer {
   @apply bg-gray-300;
-  min-height: 160px;
+  min-height: 15vh;
+  max-height: 15vh;
+  position: fixed;
+  bottom: 0;
 }
 
 .el-input {
@@ -403,10 +406,10 @@ export default defineComponent({
 }
 
 #id {
-  @apply text-gray-600 text-sm;
-  position: fixed;
-  bottom: 1%;
-  left: 50%;
+  @apply text-gray-600 text-sm pt-1;
+  align-self: center;
+  text-align: center;
+  justify-content: center;
 }
 
 #page {

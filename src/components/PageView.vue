@@ -2,7 +2,7 @@
   <el-container>
     <el-header>
       <div class="h-4"></div>
-      <div class="flex content-center text-center justify-center text-xl">
+      <div class="flex content-center text-center justify-center text-lg">
         <p class="pr-8"> 当前执行条数：{{ inst_count }}</p>
         <p class="pr-8"> 缺页次数：{{ page_fault_count }}</p>
         <p> 缺页率：{{ page_fault_rate }}%</p>
@@ -10,10 +10,10 @@
     </el-header>
     <el-main>
       <div class="mx-auto min-h-full" id="mid">
-        <div v-if="rows === 1" class="h-72"></div>
-        <div v-if="rows === 2" class="h-48"></div>
-        <div v-if="rows === 3" class="h-24"></div>
-        <div v-if="rows === 4" class="h-6"></div>
+        <div v-if="rows === 1" id="row1"></div>
+        <div v-if="rows === 2" id="row2"></div>
+        <div v-if="rows === 3" id="row3"></div>
+        <div v-if="rows === 4" id="row4"></div>
         <div
             v-for="i in rows"
             :key="i"
@@ -350,13 +350,27 @@ export default {
 
 <style scoped>
 .el-header {
-  line-height: 80px;
+  line-height: 5vh;
   backdrop-filter: blur(20px);
+  min-height: 5vh;
+  max-height: 5vh;
   @apply bg-gray-300 bg-opacity-80 shadow-2xl;
 }
 
 .el-main {
-  height: 600px;
+  max-height: 80vh;
+}
+
+#row1 {
+  height: 30vh;
+}
+
+#row2 {
+  height: 18vh;
+}
+
+#row3 {
+  height: 10vh;
 }
 
 </style>
