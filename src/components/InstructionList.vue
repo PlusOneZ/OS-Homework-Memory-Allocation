@@ -55,9 +55,9 @@ export default {
       var ran = []
 
       for (let i = 0; i < this.amount; i++) {
-        if (i < this.amount / 100 * this.forward_portion) {
+        if (i < this.amount / this.forward_portion) {
           ran.push(Forward)
-        } else if (i < this.amount / 100 * (this.forward_portion + this.backward_portion)) {
+        } else if (i < this.amount / (this.forward_portion + this.backward_portion)) {
           ran.push(Backward)
         } else {
           ran.push(Sequential)
