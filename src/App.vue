@@ -30,15 +30,15 @@ export default {
   },
   methods: {
     setInstAmount(i) {
-      this.ia = i
+      this.ia = Number(i)
     },
 
     setFrameAmount(i) {
-      this.fa = i
+      this.fa = Number(i)
     },
 
     setPageSize(i) {
-      this.ps = i
+      this.ps = Number(i)
     }
   }
 }

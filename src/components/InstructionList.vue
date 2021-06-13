@@ -54,10 +54,14 @@ export default {
     reset_list() {
       var ran = []
 
+      console.log("Forward: " + this.amount * (this.forward_portion / 100))
+      console.log("Backward: " + this.amount * (this.backward_portion / 100))
+      console.log("Bound: " + (this.amount * ((this.forward_portion / 100 + this.backward_portion / 100))))
       for (let i = 0; i < this.amount; i++) {
-        if (i < this.amount / this.forward_portion) {
+        if (i < (this.amount * (this.forward_portion / 100))) {
           ran.push(Forward)
-        } else if (i < this.amount / (this.forward_portion + this.backward_portion)) {
+          console.log('' + i + '<' + this.amount * (this.forward_portion / 100) + ": " + (i < (this.amount * (this.forward_portion / 100))))
+        } else if (i < (this.amount * ((this.forward_portion / 100 + this.backward_portion / 100)))) {
           ran.push(Backward)
         } else {
           ran.push(Sequential)
